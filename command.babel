@@ -1,0 +1,49 @@
+import path from 'path';
+import {pluck} from "lodash";
+import {listAll, listByName} from "./aws-helpers.babel";
+import inquirer from "inquirer";
+import {promisify} from 'bluebird';
+import moment from "moment";
+import {emoji} from "node-emoji";
+import {exec, test} from "shelljs";
+import cp from "child_process";
+
+const KEYS_DIR = path.resolve(process.env.HOME, 'Drive');
+const exit = process.exit;
+const {warn, log} = console;
+const prompt = promisify(inquirer.prompt);
+
+const name = process.argv[2];
+
+if (!name) {
+    warn('type instance name');
+}
+
+(async function() {
+  const instances = await listByName(name);
+
+  inquirer.prompt([{
+    type: "list",
+    name: "item",
+    message: "Select instance connect to?",
+    choices: instances.map(formatItem)
+  }], function ({item}) {
+    const index = item.match(/^\d+/)[0];
+    const selected = instances[index];
+    ssh(selected.dns, selected.key);
+  });
+})();
+
+function ssh(dns, key) {
+  const keyPath = path.join(KEYS_DIR, `${key}.pem`);
+  if (!test('-f', keyPath)) {
+    warn(`${keyPath} not found`);
+    exit(1);
+  }
+  cp.execSync(`ssh -i ${keyPath} ec2-user@${dns}`)
+}
+
+function formatItem({name, LaunchTime, InstanceId}, i) {
+  const time = moment(LaunchTime).fromNow();
+  return `${i} ${name} ${emoji.alarm_clock}${time} [${InstanceId}]`
+}

@@ -1,0 +1,24 @@
+import AWS, {EC2} from "aws-sdk";
+import _, {pluck, chain, find} from "lodash";
+import Promise, {promisifyAll} from "bluebird";
+
+const ec2 = promisifyAll(new EC2({region: 'eu-west-1'}));
+
+export async function listAll() {
+  return parseInstancesList(await ec2.describeInstancesAsync());
+}
+
+export async function listByName(name) {
+  const items = await listAll();
+  return items.filter((i)=>(i.name.match(name)));
+}
+
+function parseInstancesList(instances) {
+  const {Reservations} = instances;
+  return chain(Reservations)
+    .pluck('Instances')
+    .flatten()
+    .filter(({PublicDnsName, Tags})=> (find(Tags, {Key: 'Name'}) && PublicDnsName))
+    .map(({PublicDnsName, Tags, KeyName, ...other})=>({name: find(Tags, {Key: 'Name'}).Value, dns: PublicDnsName, key: KeyName, ...other}))
+    .value();
+}
