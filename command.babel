@@ -1,29 +1,34 @@
 import path from 'path';
 import {pluck} from "lodash";
-import {listAll, listByName} from "./aws-helpers.babel";
+import {listAll, listByName, usernameForImageId} from "./aws-helpers.babel";
 import inquirer from "inquirer";
 import Promise, {promisify} from 'bluebird';
 import moment from "moment";
 import {emoji} from "node-emoji";
-import {test} from "shelljs";
+import {existsSync} from "fs";
 import {spawn} from "child_process";
+import install from "./install.babel";
+import {prompt} from './utils.babel';
 
-const KEYS_DIR = path.resolve(process.env.HOME, 'Drive');
 const exit = process.exit;
-const {warn, log} = console;
-const prompt = (...args) => {
-  return new Promise((resolve)=>{
-    inquirer.prompt.apply(inquirer, args.concat(resolve));
-  });
-}
-
-const name = process.argv[2];
-if (!name) {
-    warn('type instance name');
-}
+const {warn, log, error} = console;
 
 (async function() {
+  const {keysDir} = await install();
+
+  log(keysDir);
+
+  const name = process.argv[2];
+  if (!name) {
+      warn('type instance name');
+  }
+
   const instances = await listByName(name);
+
+  if (!instances.length) {
+    log(`no instances found with name '${name}'`)
+    exit(0);
+  }
 
   const {item} = await prompt([{
     type: "list",
@@ -34,17 +39,30 @@ if (!name) {
 
   const index = item.match(/^\d+/)[0];
   const selected = instances[index];
-  ssh(selected.dns, selected.key);
+  const user = await usernameForImageId(selected.ImageId);
+
+  ssh({dns: selected.dns, key: path.join(keysDir, `${selected.key}.pem`), user });
 })();
 
-function ssh(dns, key) {
-  const keyPath = path.join(KEYS_DIR, `${key}.pem`);
+process.on('uncaughtException', (err) => {
+  error(err);
+  error(err.stack);
+  exit(1);
+})
 
-  if (!test('-f', keyPath)) {
-    warn(`${keyPath} not found`);
+function ssh({dns, key, user}) {
+
+  if (!existsSync(key)) {
+    warn(`${key} not found`);
     exit(1);
   }
 
+  // write to stderr for wrapper bash script
+  const cmd = `ssh -i ${key} ${user}@${dns} -o StrictHostKeyChecking=no`;
+  //fs.createWriteStream(null, { fd: 3 }).end();
+  error(cmd);
+
+  return;
   const ssh = spawn('ssh', [
     '-tt',
     '-l',
@@ -57,13 +75,25 @@ function ssh(dns, key) {
   ]);
 
   process.stdin.pipe(ssh.stdin);
+  process.stdin.resume();
+
   ssh.stdout.pipe(process.stdout);
+  ssh.stderr.pipe(process.stderr);
+
+  process.on('SIGINT', function () {
+    console.log('MAIN');
+  });
+
+  ssh.on('SIGINT', function () {
+    console.log('child');
+  });
 
   ssh.on('exit', function (code) {
     log('ssh process exit with code ' + code);
     exit(0);
   });
 }
+
 
 function formatItem({name, LaunchTime, InstanceId}, i) {
   const time = moment(LaunchTime).fromNow();

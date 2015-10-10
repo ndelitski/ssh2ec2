@@ -1,3 +1,15 @@
-#!/usr/bin/env babel-node
+#!/bin/bash
 
-require('./command.babel');
+temp_file=.command_temp
+
+function cleanup() {
+  rm $temp_file
+}
+trap cleanup EXIT
+
+babel-node "./command.babel" $@ 2> $temp_file
+command=$(cat $temp_file)
+echo $command
+if [ ! -z "$command" ]; then
+  $command
+fi
