@@ -2,12 +2,20 @@
 
 temp_file=.command_temp
 
+if [ "$1" == "--dev" ]; then
+  exec_file=$(node -p "require('path').resolve('$(dirname $0)', '..', 'dist/command.js')")
+  args=${*:2}
+else
+  exec_file=$(node -p "require('path').resolve('$(dirname $0)', '..', 'lib/node_modules/ssh2ec2/dist/command.js')")
+  args=$*
+fi
+
 function cleanup() {
   rm $temp_file
 }
 trap cleanup EXIT
 
-node "./dist/command.js" $@ 2> $temp_file
+node "$exec_file" $args 2> $temp_file
 command=$(cat $temp_file)
 echo $command
 if [ ! -z "$command" ]; then

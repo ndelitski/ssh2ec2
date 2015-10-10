@@ -4,7 +4,7 @@
   "main": "ssh2ec2.js",
   "scripts": {
     "build": "babel src -d dist",
-    "dev": "npm run build > /dev/null && exec ./bin/ssh2ec2"
+    "dev": "npm run build > /dev/null && exec ./bin/ssh2ec2 --dev"
   },
   "bin": {
     "ssh2ec2": "./bin/ssh2ec2"
