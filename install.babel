@@ -1,8 +1,9 @@
 import path from "path";
 import fs from "fs";
 import {prompt} from './utils.babel';
+import {emoji} from "node-emoji";
 
-const CONF_PATH = path.resolve(userHome(), '.ssh2ec2');
+const CONF_PATH = path.resolve(home(), '.ssh2ec2');
 
 export default async function install() {
   if (fs.existsSync(CONF_PATH)) {
@@ -17,7 +18,7 @@ export default async function install() {
 
     return parsed;
   } else {
-    console.log(`Hi, ${process.env.USER}! Seems you first time here, configure:`);
+    console.log(`Hi, ${process.env.USER}${emoji.heart}! Seems you first time here, configure:`);
     const {keysDir} = await prompt([{
       type: 'input',
       name: 'keysDir',
@@ -35,6 +36,6 @@ export default async function install() {
   }
 }
 
-function userHome() {
+function home() {
   return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
 }
