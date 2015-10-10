@@ -2,19 +2,22 @@ import path from 'path';
 import {pluck} from "lodash";
 import {listAll, listByName} from "./aws-helpers.babel";
 import inquirer from "inquirer";
-import {promisify} from 'bluebird';
+import Promise, {promisify} from 'bluebird';
 import moment from "moment";
 import {emoji} from "node-emoji";
-import {exec, test} from "shelljs";
-import cp from "child_process";
+import {test} from "shelljs";
+import {spawn} from "child_process";
 
 const KEYS_DIR = path.resolve(process.env.HOME, 'Drive');
 const exit = process.exit;
 const {warn, log} = console;
-const prompt = promisify(inquirer.prompt);
+const prompt = (...args) => {
+  return new Promise((resolve)=>{
+    inquirer.prompt.apply(inquirer, args.concat(resolve));
+  });
+}
 
 const name = process.argv[2];
-
 if (!name) {
     warn('type instance name');
 }
@@ -22,46 +25,43 @@ if (!name) {
 (async function() {
   const instances = await listByName(name);
 
-  inquirer.prompt([{
+  const {item} = await prompt([{
     type: "list",
     name: "item",
     message: "Select instance connect to?",
     choices: instances.map(formatItem)
-  }], function ({item}) {
-    const index = item.match(/^\d+/)[0];
-    const selected = instances[index];
-    ssh(selected.dns, selected.key);
-  });
+  }]);
+
+  const index = item.match(/^\d+/)[0];
+  const selected = instances[index];
+  ssh(selected.dns, selected.key);
 })();
 
 function ssh(dns, key) {
   const keyPath = path.join(KEYS_DIR, `${key}.pem`);
+
   if (!test('-f', keyPath)) {
     warn(`${keyPath} not found`);
     exit(1);
   }
 
-  var spawnArgs = [ '-tt',                            // force teletype since ssh uses a psuedo-terminal
+  const ssh = spawn('ssh', [
+    '-tt',
     '-l',
-    'ec2-user',                      // login name for the AMI being used
-    //'-v',                           // verbose mode
+    'ec2-user',
     '-i',
-    keyPath,      // identity file
-    dns,               // ip address of machine you are SSHing into
+    keyPath,
+    dns,
     '-o',
     'StrictHostKeyChecking=no'
-  ];  // don't require you to type 'yes' if IP not yet on the list of known hosts
-
-  var ssh = cp.spawn('ssh', spawnArgs, {
-    env: process.env
-  });
+  ]);
 
   process.stdin.pipe(ssh.stdin);
   ssh.stdout.pipe(process.stdout);
 
-
   ssh.on('exit', function (code) {
-    console.log('ssh process exit with code ' + code);
+    log('ssh process exit with code ' + code);
+    exit(0);
   });
 }
 
