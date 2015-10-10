@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import {prompt} from './utils.babel';
+import {prompt} from './utils';
 import {emoji} from "node-emoji";
 
 const CONF_PATH = path.resolve(home(), '.ssh2ec2');

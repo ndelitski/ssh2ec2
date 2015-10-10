@@ -7,7 +7,7 @@ function cleanup() {
 }
 trap cleanup EXIT
 
-babel-node "./command.babel" $@ 2> $temp_file
+node "./dist/command.js" $@ 2> $temp_file
 command=$(cat $temp_file)
 echo $command
 if [ ! -z "$command" ]; then

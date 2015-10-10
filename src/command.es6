@@ -1,14 +1,14 @@
 import path from 'path';
-import {pluck} from "lodash";
-import {listAll, listByName, usernameForImageId} from "./aws-helpers.babel";
+import {pluck, sortBy} from "lodash";
+import {listAll, listByName, usernameForImageId} from "./aws-helpers";
 import inquirer from "inquirer";
 import Promise, {promisify} from 'bluebird';
 import moment from "moment";
 import {emoji} from "node-emoji";
 import {existsSync} from "fs";
 import {spawn} from "child_process";
-import install from "./install.babel";
-import {prompt} from './utils.babel';
+import install from "./install";
+import {prompt} from './utils';
 
 const exit = process.exit;
 const {warn, log, error} = console;
@@ -23,7 +23,7 @@ const {warn, log, error} = console;
       warn('type instance name');
   }
 
-  const instances = await listByName(name);
+  const instances = sortBy(await listByName(name), 'name');
 
   if (!instances.length) {
     log(`no instances found with name '${name}'`)
