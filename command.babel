@@ -40,7 +40,29 @@ function ssh(dns, key) {
     warn(`${keyPath} not found`);
     exit(1);
   }
-  cp.execSync(`ssh -i ${keyPath} ec2-user@${dns}`)
+
+  var spawnArgs = [ '-tt',                            // force teletype since ssh uses a psuedo-terminal
+    '-l',
+    'ec2-user',                      // login name for the AMI being used
+    //'-v',                           // verbose mode
+    '-i',
+    keyPath,      // identity file
+    dns,               // ip address of machine you are SSHing into
+    '-o',
+    'StrictHostKeyChecking=no'
+  ];  // don't require you to type 'yes' if IP not yet on the list of known hosts
+
+  var ssh = cp.spawn('ssh', spawnArgs, {
+    env: process.env
+  });
+
+  process.stdin.pipe(ssh.stdin);
+  ssh.stdout.pipe(process.stdout);
+
+
+  ssh.on('exit', function (code) {
+    console.log('ssh process exit with code ' + code);
+  });
 }
 
 function formatItem({name, LaunchTime, InstanceId}, i) {
