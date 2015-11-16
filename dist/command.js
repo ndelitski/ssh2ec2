@@ -44,8 +44,6 @@ _bluebird.coroutine(function* () {
 
   var keysDir = _ref.keysDir;
 
-  log(keysDir);
-
   var name = process.argv[2];
   if (!name) {
     warn('type instance name');

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-temp_file=.command_temp
+temp_file=$TMPDIR/.ss2ec2_command
 
 if [ "$1" == "--dev" ]; then
   exec_file=$(node -p "require('path').resolve('$(dirname $0)', '..', 'dist/command.js')")

@@ -16,8 +16,6 @@ const {warn, log, error} = console;
 (async function() {
   const {keysDir} = await install();
 
-  log(keysDir);
-
   const name = process.argv[2];
   if (!name) {
       warn('type instance name');
