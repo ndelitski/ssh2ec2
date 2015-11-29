@@ -19,7 +19,7 @@ export async function usernameForImageId(imageId) {
 }
 
 function getSSHUser(imageName) {
-  if (imageName.match(/rancher/i)) {
+  if (imageName.match(/rancher-os/i)) {
     return 'rancher';
   } else if (imageName.match(/ecs/i)) {
     return 'ec2-user';

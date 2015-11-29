@@ -4,7 +4,8 @@
   "main": "ssh2ec2.js",
   "scripts": {
     "build": "babel src -d dist",
-    "dev": "npm run build > /dev/null && exec ./bin/ssh2ec2 --dev"
+    "dev": "npm run build > /dev/null && exec ./bin/ssh2ec2 --dev",
+    "prepublish": "npm run build"
   },
   "bin": {
     "ssh2ec2": "./bin/ssh2ec2"
@@ -17,13 +18,5 @@
     "moment": "^2.10.6",
     "node-emoji": "^1.0.3",
     "ssh-exec": "^1.3.0"
-  },
-  "devDependencies": {
-    "ghooks": "^0.3.2"
-  },
-  "config": {
-    "ghooks": {
-      "pre-commit": "npm run build && git add dist"
-    }
   }
 }
