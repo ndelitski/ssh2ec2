@@ -23,6 +23,8 @@ function getSSHUser(imageName) {
     return 'rancher';
   } else if (imageName.match(/ecs/i)) {
     return 'ec2-user';
+  } else if (imageName.match(/fedora/i)) {
+    return 'fedora';
   } else if (imageName.match(/ubuntu/i)) {
     return 'ubuntu';
   } else if (imageName.match(/cent/i)) {
