@@ -1,9 +1,9 @@
 {
   "name": "ssh2ec2",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "ssh2ec2.js",
   "scripts": {
-    "build": "babel src/ -d dist/",
+    "build": "babel src -d dist",
     "dev": "npm run build > /dev/null && exec ./bin/ssh2ec2 --dev",
     "prepublish": "npm run build"
   },
