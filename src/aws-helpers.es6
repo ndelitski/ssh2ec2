@@ -25,6 +25,8 @@ function getSSHUser(imageName) {
     return 'ec2-user';
   } else if (imageName.match(/ubuntu/i)) {
     return 'ubuntu';
+  } else if (imageName.match(/cent/i)) {
+    return 'centos';
   } else if (imageName.match(/amzn/i)) {
     return 'ec2-user';
   } else {
