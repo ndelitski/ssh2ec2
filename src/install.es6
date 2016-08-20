@@ -6,7 +6,11 @@ import {emoji} from "node-emoji";
 const CONF_PATH = path.resolve(home(), '.ssh2ec2');
 
 export default async function install() {
-  if (fs.existsSync(CONF_PATH)) {
+  if (process.env.SSH_KEYS_PATH) {
+    return {
+      keysDir: process.env.SSH_KEYS_PATH
+    }
+  } else if (fs.existsSync(CONF_PATH)) {
     const json = fs.readFileSync(CONF_PATH, 'utf-8');
     let parsed;
 
@@ -26,7 +30,7 @@ export default async function install() {
     }]);
 
     if (!fs.existsSync(keysDir)) {
-      console.error(`directroy ${keysDir} not found`);
+      console.error(`directory ${keysDir} not found`);
       exit(1);
     }
 
