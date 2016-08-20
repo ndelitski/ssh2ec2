@@ -1,6 +1,6 @@
 {
   "name": "ssh2ec2",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "ssh2ec2.js",
   "scripts": {
     "build": "node_modules/.bin/babel src -d dist",
